@@ -1,0 +1,1705 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organisation Familiale Personnalisée</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .task-item {
+            touch-action: none;
+            user-select: none;
+        }
+        
+        .dropzone {
+            background-color: #f0f4f8;
+            border: 2px dashed #cbd5e0;
+            border-radius: 0.5rem;
+            min-height: 50px;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .dropzone.highlight {
+            background-color: #e2e8f0;
+            border-color: #4299e1;
+        }
+        
+        .draggable {
+            cursor: move;
+        }
+        
+         {
+            .no-print {
+                display: none !important;
+            }
+            
+            body {
+                background-color: white;
+            }
+            
+            .print-container {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            
+            .tab-content {
+                display: block !important;
+                page-break-after: always;
+            }
+            
+            button, .tabs, .btn {
+                display: none !important;
+            }
+        }
+        
+        .prayer-position {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background-color: white;
+        }
+        
+        .arabic-text {
+            font-family: 'Amiri', serif;
+            direction: rtl;
+            text-align: right;
+            font-size: 1.25rem;
+            line-height: 2rem;
+        }
+        
+        .card {
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .rule-card {
+            border-left: 4px solid #4299e1;
+        }
+        
+        .consequence-card {
+            border-left: 4px solid #ed8936;
+        }
+        
+        .task-rotator {
+            overflow-x: auto;
+            scrollbar-width: thin;
+        }
+        
+        /* Custom calendar styling */
+        .calendar {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .calendar th {
+            text-align: center;
+            padding: 0.5rem;
+            background-color: #4299e1;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .calendar td {
+            border: 1px solid #e2e8f0;
+            padding: 0.5rem;
+            vertical-align: top;
+            height: 100px;
+            width: 14.28%;
+        }
+        
+        /* Invoke card styling */
+        .invoke-card {
+            position: relative;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+        
+        .invoke-card .front,
+        .invoke-card .back {
+            backface-visibility: hidden;
+            transition: transform 0.6s linear;
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+            .invoke-card .front,
+            .invoke-card .back {
+                transition: none;
+            }
+        }
+    </style>
+</head>
+<noscript>
+    <div class="bg-red-100 text-red-800 p-4 rounded mb-4">
+      JavaScript est désactivé dans votre navigateur. Veuillez l’activer pour utiliser ce site correctement.
+    </div>
+  </noscript>
+  
+<body class="min-h-screen">
+    <header class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-6 no-print">
+        <div class="container mx-auto">
+            <h1 class="text-3xl font-bold mb-2">Organisation Familiale Personnalisée</h1>
+            <p class="opacity-80">Outils pour une gestion harmonieuse de la vie familiale</p>
+        </div>
+    </header>
+    
+    <div class="container mx-auto px-4 py-6 print-container">
+        <!-- Navigation Tabs -->
+        <div class="mb-8 no-print">
+            <div class="flex flex-wrap space-x-2 tabs">
+                <button type="button" class="tab-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded active" data-tab="planning">Plannings</button>
+                <button type="button" class="tab-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded" data-tab="tasks">Tâches Ménagères</button>
+                <button type="button" class="tab-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded" data-tab="prayer">Apprentissage Prière</button>
+                <button type="button" class="tab-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded" data-tab="invocations">Invocations</button>
+                <button type="button" class="tab-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded" data-tab="arabic">Apprentissage Arabe</button>
+                <button type="button" class="tab-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded" data-tab="rules">Règles Familiales</button>
+            </div>
+            
+            <div class="mt-4 flex space-x-4">
+                <button id="download-pdf" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                    <i class="fas fa-download mr-2"></i>Télécharger en PDF
+                </button>
+                <button id="print-page" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                    <i class="fas fa-print mr-2"></i>Imprimer
+                </button>
+            </div>
+        </div>
+        
+        <!-- Planning Tab -->
+        <div id="planning" class="tab-content active">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Plannings Familiaux</h2>
+            
+            <!-- Planning Type Selector -->
+            <div class="mb-6 no-print">
+                <div class="flex space-x-4">
+                    <button class="planning-type-btn bg-blue-500 text-white px-4 py-2 rounded active" data-type="school">Période Scolaire</button>
+                    <button class="planning-type-btn bg-gray-300 text-gray-700 px-4 py-2 rounded" data-type="vacation">Vacances</button>
+                </div>
+            </div>
+            
+            <!-- Family Planning - School Period -->
+            <div id="planning-school" class="planning-type active mb-10">
+                <h3 class="text-xl font-semibold mb-4 text-blue-700">Planning Familial - Période Scolaire</h3>
+                
+                <div class="overflow-x-auto bg-white rounded-lg shadow-md p-4 mb-8">
+                    <table class="calendar w-full">
+                        <thead>
+                            <tr>
+                                <th>Lundi</th>
+                                <th>Mardi</th>
+                                <th>Mercredi</th>
+                                <th>Jeudi</th>
+                                <th>Vendredi</th>
+                                <th>Samedi</th>
+                                <th>Dimanche</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="morning time-block mb-2 p-1 bg-blue-50 rounded">
+                                        <p class="text-xs font-semibold text-blue-500">MATIN</p>
+                                        <div class="dropzone" data-day="lundi" data-time="matin"></div>
+                                    </div>
+                                    <div class="afternoon time-block mb-2 p-1 bg-yellow-50 rounded">
+                                        <p class="text-xs font-semibold text-yellow-600">APRÈS-MIDI</p>
+                                        <div class="dropzone" data-day="lundi" data-time="aprem"></div>
+                                    </div>
+                                    <div class="evening time-block p-1 bg-purple-50 rounded">
+                                        <p class="text-xs font-semibold text-purple-500">SOIR</p>
+                                        <div class="dropzone" data-day="lundi" data-time="soir"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="morning time-block mb-2 p-1 bg-blue-50 rounded">
+                                        <p class="text-xs font-semibold text-blue-500">MATIN</p>
+                                        <div class="dropzone" data-day="mardi" data-time="matin"></div>
+                                    </div>
+                                    <div class="afternoon time-block mb-2 p-1 bg-yellow-50 rounded">
+                                        <p class="text-xs font-semibold text-yellow-600">APRÈS-MIDI</p>
+                                        <div class="dropzone" data-day="mardi" data-time="aprem"></div>
+                                    </div>
+                                    <div class="evening time-block p-1 bg-purple-50 rounded">
+                                        <p class="text-xs font-semibold text-purple-500">SOIR</p>
+                                        <div class="dropzone" data-day="mardi" data-time="soir"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="morning time-block mb-2 p-1 bg-blue-50 rounded">
+                                        <p class="text-xs font-semibold text-blue-500">MATIN</p>
+                                        <div class="dropzone" data-day="mercredi" data-time="matin"></div>
+                                    </div>
+                                    <div class="afternoon time-block mb-2 p-1 bg-yellow-50 rounded">
+                                        <p class="text-xs font-semibold text-yellow-600">APRÈS-MIDI</p>
+                                        <div class="dropzone" data-day="mercredi" data-time="aprem"></div>
+                                    </div>
+                                    <div class="evening time-block p-1 bg-purple-50 rounded">
+                                        <p class="text-xs font-semibold text-purple-500">SOIR</p>
+                                        <div class="dropzone" data-day="mercredi" data-time="soir"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="morning time-block mb-2 p-1 bg-blue-50 rounded">
+                                        <p class="text-xs font-semibold text-blue-500">MATIN</p>
+                                        <div class="dropzone" data-day="jeudi" data-time="matin"></div>
+                                    </div>
+                                    <div class="afternoon time-block mb-2 p-1 bg-yellow-50 rounded">
+                                        <p class="text-xs font-semibold text-yellow-600">APRÈS-MIDI</p>
+                                        <div class="dropzone" data-day="jeudi" data-time="aprem"></div>
+                                    </div>
+                                    <div class="evening time-block p-1 bg-purple-50 rounded">
+                                        <p class="text-xs font-semibold text-purple-500">SOIR</p>
+                                        <div class="dropzone" data-day="jeudi" data-time="soir"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="morning time-block mb-2 p-1 bg-blue-50 rounded">
+                                        <p class="text-xs font-semibold text-blue-500">MATIN</p>
+                                        <div class="dropzone" data-day="vendredi" data-time="matin"></div>
+                                    </div>
+                                    <div class="afternoon time-block mb-2 p-1 bg-yellow-50 rounded">
+                                        <p class="text-xs font-semibold text-yellow-600">APRÈS-MIDI</p>
+                                        <div class="dropzone" data-day="vendredi" data-time="aprem"></div>
+                                    </div>
+                                    <div class="evening time-block p-1 bg-purple-50 rounded">
+                                        <p class="text-xs font-semibold text-purple-500">SOIR</p>
+                                        <div class="dropzone" data-day="vendredi" data-time="soir"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="morning time-block mb-2 p-1 bg-blue-50 rounded">
+                                        <p class="text-xs font-semibold text-blue-500">MATIN</p>
+                                        <div class="dropzone" data-day="samedi" data-time="matin"></div>
+                                    </div>
+                                    <div class="afternoon time-block mb-2 p-1 bg-yellow-50 rounded">
+                                        <p class="text-xs font-semibold text-yellow-600">APRÈS-MIDI</p>
+                                        <div class="dropzone" data-day="samedi" data-time="aprem"></div>
+                                    </div>
+                                    <div class="evening time-block p-1 bg-purple-50 rounded">
+                                        <p class="text-xs font-semibold text-purple-500">SOIR</p>
+                                        <div class="dropzone" data-day="samedi" data-time="soir"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="morning time-block mb-2 p-1 bg-blue-50 rounded">
+                                        <p class="text-xs font-semibold text-blue-500">MATIN</p>
+                                        <div class="dropzone" data-day="dimanche" data-time="matin"></div>
+                                    </div>
+                                    <div class="afternoon time-block mb-2 p-1 bg-yellow-50 rounded">
+                                        <p class="text-xs font-semibold text-yellow-600">APRÈS-MIDI</p>
+                                        <div class="dropzone" data-day="dimanche" data-time="aprem"></div>
+                                    </div>
+                                    <div class="evening time-block p-1 bg-purple-50 rounded">
+                                        <p class="text-xs font-semibold text-purple-500">SOIR</p>
+                                        <div class="dropzone" data-day="dimanche" data-time="soir"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Family Planning - Vacation Period -->
+            <div id="planning-vacation" class="planning-type hidden mb-10">
+                <h3 class="text-xl font-semibold mb-4 text-blue-700">Planning Familial - Vacances</h3>
+                
+                <div class="overflow-x-auto bg-white rounded-lg shadow-md p-4 mb-8">
+                    <table class="calendar w-full">
+                        <thead>
+                            <tr>
+                                <th>Lundi</th>
+                                <th>Mardi</th>
+                                <th>Mercredi</th>
+                                <th>Jeudi</th>
+                                <th>Vendredi</th>
+                                <th>Samedi</th>
+                                <th>Dimanche</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="morning time-block mb-2 p-1 bg-blue-50 rounded">
+                                        <p class="text-xs font-semibold text-blue-500">MATIN</p>
+                                        <div class="dropzone" data-day="lundi-vac" data-time="matin"></div>
+                                    </div>
+                                    <div class="afternoon time-block mb-2 p-1 bg-yellow-50 rounded">
+                                        <p class="text-xs font-semibold text-yellow-600">APRÈS-MIDI</p>
+                                        <div class="dropzone" data-day="lundi-vac" data-time="aprem"></div>
+                                    </div>
+                                    <div class="evening time-block p-1 bg-purple-50 rounded">
+                                        <p class="text-xs font-semibold text-purple-500">SOIR</p>
+                                        <div class="dropzone" data-day="lundi-vac" data-time="soir"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="morning time-block mb-2 p-1 bg-blue-50 rounded">
+                                        <p class="text-xs font-semibold text-blue-500">MATIN</p>
+                                        <div class="dropzone" data-day="mardi-vac" data-time="matin"></div>
+                                    </div>
+                                    <div class="afternoon time-block mb-2 p-1 bg-yellow-50 rounded">
+                                        <p class="text-xs font-semibold text-yellow-600">APRÈS-MIDI</p>
+                                        <div class="dropzone" data-day="mardi-vac" data-time="aprem"></div>
+                                    </div>
+                                    <div class="evening time-block p-1 bg-purple-50 rounded">
+                                        <p class="text-xs font-semibold text-purple-500">SOIR</p>
+                                        <div class="dropzone" data-day="mardi-vac" data-time="soir"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="morning time-block mb-2 p-1 bg-blue-50 rounded">
+                                        <p class="text-xs font-semibold text-blue-500">MATIN</p>
+                                        <div class="dropzone" data-day="mercredi-vac" data-time="matin"></div>
+                                    </div>
+                                    <div class="afternoon time-block mb-2 p-1 bg-yellow-50 rounded">
+                                        <p class="text-xs font-semibold text-yellow-600">APRÈS-MIDI</p>
+                                        <div class="dropzone" data-day="mercredi-vac" data-time="aprem"></div>
+                                    </div>
+                                    <div class="evening time-block p-1 bg-purple-50 rounded">
+                                        <p class="text-xs font-semibold text-purple-500">SOIR</p>
+                                        <div class="dropzone" data-day="mercredi-vac" data-time="soir"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="morning time-block mb-2 p-1 bg-blue-50 rounded">
+                                        <p class="text-xs font-semibold text-blue-500">MATIN</p>
+                                        <div class="dropzone" data-day="jeudi-vac" data-time="matin"></div>
+                                    </div>
+                                    <div class="afternoon time-block mb-2 p-1 bg-yellow-50 rounded">
+                                        <p class="text-xs font-semibold text-yellow-600">APRÈS-MIDI</p>
+                                        <div class="dropzone" data-day="jeudi-vac" data-time="aprem"></div>
+                                    </div>
+                                    <div class="evening time-block p-1 bg-purple-50 rounded">
+                                        <p class="text-xs font-semibold text-purple-500">SOIR</p>
+                                        <div class="dropzone" data-day="jeudi-vac" data-time="soir"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="morning time-block mb-2 p-1 bg-blue-50 rounded">
+                                        <p class="text-xs font-semibold text-blue-500">MATIN</p>
+                                        <div class="dropzone" data-day="vendredi-vac" data-time="matin"></div>
+                                    </div>
+                                    <div class="afternoon time-block mb-2 p-1 bg-yellow-50 rounded">
+                                        <p class="text-xs font-semibold text-yellow-600">APRÈS-MIDI</p>
+                                        <div class="dropzone" data-day="vendredi-vac" data-time="aprem"></div>
+                                    </div>
+                                    <div class="evening time-block p-1 bg-purple-50 rounded">
+                                        <p class="text-xs font-semibold text-purple-500">SOIR</p>
+                                        <div class="dropzone" data-day="vendredi-vac" data-time="soir"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="morning time-block mb-2 p-1 bg-blue-50 rounded">
+                                        <p class="text-xs font-semibold text-blue-500">MATIN</p>
+                                        <div class="dropzone" data-day="samedi-vac" data-time="matin"></div>
+                                    </div>
+                                    <div class="afternoon time-block mb-2 p-1 bg-yellow-50 rounded">
+                                        <p class="text-xs font-semibold text-yellow-600">APRÈS-MIDI</p>
+                                        <div class="dropzone" data-day="samedi-vac" data-time="aprem"></div>
+                                    </div>
+                                    <div class="evening time-block p-1 bg-purple-50 rounded">
+                                        <p class="text-xs font-semibold text-purple-500">SOIR</p>
+                                        <div class="dropzone" data-day="samedi-vac" data-time="soir"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="morning time-block mb-2 p-1 bg-blue-50 rounded">
+                                        <p class="text-xs font-semibold text-blue-500">MATIN</p>
+                                        <div class="dropzone" data-day="dimanche-vac" data-time="matin"></div>
+                                    </div>
+                                    <div class="afternoon time-block mb-2 p-1 bg-yellow-50 rounded">
+                                        <p class="text-xs font-semibold text-yellow-600">APRÈS-MIDI</p>
+                                        <div class="dropzone" data-day="dimanche-vac" data-time="aprem"></div>
+                                    </div>
+                                    <div class="evening time-block p-1 bg-purple-50 rounded">
+                                        <p class="text-xs font-semibold text-purple-500">SOIR</p>
+                                        <div class="dropzone" data-day="dimanche-vac" data-time="soir"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Individual Planning Section -->
+            <div class="mb-10">
+                <h3 class="text-xl font-semibold mb-4 text-blue-700">Plannings Individuels</h3>
+                
+                <!-- Individual Selector -->
+                <div class="mb-6 no-print">
+                    <div class="flex flex-wrap space-x-2">
+                        <button class="individual-btn bg-blue-500 text-white px-4 py-2 rounded active" data-individual="mohammed">Mohammed (15 ans)</button>
+                        <button class="individual-btn bg-gray-300 text-gray-700 px-4 py-2 rounded" data-individual="dialia">Dialia (10 ans)</button>
+                        <button class="individual-btn bg-gray-300 text-gray-700 px-4 py-2 rounded" data-individual="abderahman">Abderahman (7 ans)</button>
+                        <button class="individual-btn bg-gray-300 text-gray-700 px-4 py-2 rounded" data-individual="idriss">Idriss (5 ans)</button>
+                        <button class="individual-btn bg-gray-300 text-gray-700 px-4 py-2 rounded" data-individual="fatima">Fatima (1 an)</button>
+                    </div>
+                </div>
+                
+                <!-- Mohammed's Planning -->
+                <div id="mohammed-planning" class="individual-planning active">
+                    <div class="bg-white rounded-lg shadow-md p-4 mb-8">
+                        <h4 class="text-lg font-bold mb-3 text-blue-600">Planning de Mohammed (15 ans)</h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-blue-500 mb-2">Matin</h5>
+                                <div class="dropzone" data-person="mohammed" data-time="matin"></div>
+                            </div>
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-yellow-600 mb-2">Après-midi</h5>
+                                <div class="dropzone" data-person="mohammed" data-time="aprem"></div>
+                            </div>
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-purple-500 mb-2">Soir</h5>
+                                <div class="dropzone" data-person="mohammed" data-time="soir"></div>
+                            </div>
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-green-500 mb-2">Tâches spécifiques</h5>
+                                <div class="dropzone" data-person="mohammed" data-time="tasks"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Dialia's Planning -->
+                <div id="dialia-planning" class="individual-planning hidden">
+                    <div class="bg-white rounded-lg shadow-md p-4 mb-8">
+                        <h4 class="text-lg font-bold mb-3 text-blue-600">Planning de Dialia (10 ans)</h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-blue-500 mb-2">Matin</h5>
+                                <div class="dropzone" data-person="dialia" data-time="matin"></div>
+                            </div>
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-yellow-600 mb-2">Après-midi</h5>
+                                <div class="dropzone" data-person="dialia" data-time="aprem"></div>
+                            </div>
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-purple-500 mb-2">Soir</h5>
+                                <div class="dropzone" data-person="dialia" data-time="soir"></div>
+                            </div>
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-green-500 mb-2">Tâches spécifiques</h5>
+                                <div class="dropzone" data-person="dialia" data-time="tasks"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Abderahman's Planning -->
+                <div id="abderahman-planning" class="individual-planning hidden">
+                    <div class="bg-white rounded-lg shadow-md p-4 mb-8">
+                        <h4 class="text-lg font-bold mb-3 text-blue-600">Planning d'Abderahman (7 ans)</h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-blue-500 mb-2">Matin</h5>
+                                <div class="dropzone" data-person="abderahman" data-time="matin"></div>
+                            </div>
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-yellow-600 mb-2">Après-midi</h5>
+                                <div class="dropzone" data-person="abderahman" data-time="aprem"></div>
+                            </div>
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-purple-500 mb-2">Soir</h5>
+                                <div class="dropzone" data-person="abderahman" data-time="soir"></div>
+                            </div>
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-green-500 mb-2">Tâches spécifiques</h5>
+                                <div class="dropzone" data-person="abderahman" data-time="tasks"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Idriss's Planning -->
+                <div id="idriss-planning" class="individual-planning hidden">
+                    <div class="bg-white rounded-lg shadow-md p-4 mb-8">
+                        <h4 class="text-lg font-bold mb-3 text-blue-600">Planning d'Idriss (5 ans)</h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-blue-500 mb-2">Matin</h5>
+                                <div class="dropzone" data-person="idriss" data-time="matin"></div>
+                            </div>
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-yellow-600 mb-2">Après-midi</h5>
+                                <div class="dropzone" data-person="idriss" data-time="aprem"></div>
+                            </div>
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-purple-500 mb-2">Soir</h5>
+                                <div class="dropzone" data-person="idriss" data-time="soir"></div>
+                            </div>
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-green-500 mb-2">Tâches simples</h5>
+                                <div class="dropzone" data-person="idriss" data-time="tasks"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fatima's Planning -->
+                <div id="fatima-planning" class="individual-planning hidden">
+                    <div class="bg-white rounded-lg shadow-md p-4 mb-8">
+                        <h4 class="text-lg font-bold mb-3 text-blue-600">Planning de Fatima (1 an)</h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-blue-500 mb-2">Matin</h5>
+                                <div class="dropzone" data-person="fatima" data-time="matin"></div>
+                            </div>
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-pink-500 mb-2">Siestes</h5>
+                                <div class="dropzone" data-person="fatima" data-time="sieste"></div>
+                            </div>
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-yellow-600 mb-2">Repas</h5>
+                                <div class="dropzone" data-person="fatima" data-time="repas"></div>
+                            </div>
+                            <div class="border border-gray-200 rounded p-3">
+                                <h5 class="font-semibold text-purple-500 mb-2">Soir</h5>
+                                <div class="dropzone" data-person="fatima" data-time="soir"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Task Icons -->
+            <div class="mb-10 no-print">
+                <h3 class="text-xl font-semibold mb-4 text-blue-700">Icônes d'activités (Glisser vers les plannings)</h3>
+                
+                <div class="bg-white rounded-lg shadow-md p-4 mb-8">
+                    <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
+                        <!-- School Activities -->
+                        <div class="task-item draggable p-2 bg-blue-100 rounded flex flex-col items-center justify-center text-center" data-task="ecole">
+                            <i class="fas fa-school text-2xl text-blue-600"></i>
+                            <p class="text-xs mt-1">École</p>
+                        </div>
+                        <div class="task-item draggable p-2 bg-blue-100 rounded flex flex-col items-center justify-center text-center" data-task="devoirs">
+                            <i class="fas fa-book text-2xl text-blue-600"></i>
+                            <p class="text-xs mt-1">Devoirs</p>
+                        </div>
+                        <div class="task-item draggable p-2 bg-blue-100 rounded flex flex-col items-center justify-center text-center" data-task="lecture">
+                            <i class="fas fa-book-reader text-2xl text-blue-600"></i>
+                            <p class="text-xs mt-1">Lecture</p>
+                        </div>
+                        
+                        <!-- Religious Activities -->
+                        <div class="task-item draggable p-2 bg-green-100 rounded flex flex-col items-center justify-center text-center" data-task="priere">
+                            <i class="fas fa-pray text-2xl text-green-600"></i>
+                            <p class="text-xs mt-1">Prière</p>
+                        </div>
+                        <div class="task-item draggable p-2 bg-green-100 rounded flex flex-col items-center justify-center text-center" data-task="coran">
+                            <i class="fas fa-book-open text-2xl text-green-600"></i>
+                            <p class="text-xs mt-1">Coran</p>
+                        </div>
+                        <div class="task-item draggable p-2 bg-green-100 rounded flex flex-col items-center justify-center text-center" data-task="arabe">
+                            <i class="fas fa-language text-2xl text-green-600"></i>
+                            <p class="text-xs mt-1">Arabe</p>
+                        </div>
+                        
+                        <!-- Household Chores -->
+                        <div class="task-item draggable p-2 bg-yellow-100 rounded flex flex-col items-center justify-center text-center" data-task="rangement">
+                            <i class="fas fa-box text-2xl text-yellow-600"></i>
+                            <p class="text-xs mt-1">Rangement</p>
+                        </div>
+                        <div class="task-item draggable p-2 bg-yellow-100 rounded flex flex-col items-center justify-center text-center" data-task="vaisselle">
+                            <i class="fas fa-sink text-2xl text-yellow-600"></i>
+                            <p class="text-xs mt-1">Vaisselle</p>
+                        </div>
+                        <div class="task-item draggable p-2 bg-yellow-100 rounded flex flex-col items-center justify-center text-center" data-task="poubelle">
+                            <i class="fas fa-trash text-2xl text-yellow-600"></i>
+                            <p class="text-xs mt-1">Poubelles</p>
+                        </div>
+                        <div class="task-item draggable p-2 bg-yellow-100 rounded flex flex-col items-center justify-center text-center" data-task="linge">
+                            <i class="fas fa-tshirt text-2xl text-yellow-600"></i>
+                            <p class="text-xs mt-1">Linge</p>
+                        </div>
+                        <div class="task-item draggable p-2 bg-yellow-100 rounded flex flex-col items-center justify-center text-center" data-task="sol">
+                            <i class="fas fa-broom text-2xl text-yellow-600"></i>
+                            <p class="text-xs mt-1">Nettoyer sol</p>
+                        </div>
+                        <div class="task-item draggable p-2 bg-yellow-100 rounded flex flex-col items-center justify-center text-center" data-task="table">
+                            <i class="fas fa-utensils text-2xl text-yellow-600"></i>
+                            <p class="text-xs mt-1">Mettre table</p>
+                        </div>
+                        
+                        <!-- Daily Routines -->
+                        <div class="task-item draggable p-2 bg-purple-100 rounded flex flex-col items-center justify-center text-center" data-task="douche">
+                            <i class="fas fa-shower text-2xl text-purple-600"></i>
+                            <p class="text-xs mt-1">Douche</p>
+                        </div>
+                        <div class="task-item draggable p-2 bg-purple-100 rounded flex flex-col items-center justify-center text-center" data-task="repas">
+                            <i class="fas fa-drumstick-bite text-2xl text-purple-600"></i>
+                            <p class="text-xs mt-1">Repas</p>
+                        </div>
+                        <div class="task-item draggable p-2 bg-purple-100 rounded flex flex-col items-center justify-center text-center" data-task="dents">
+                            <i class="fas fa-tooth text-2xl text-purple-600"></i>
+                            <p class="text-xs mt-1">Brosser dents</p>
+                        </div>
+                        <div class="task-item draggable p-2 bg-purple-100 rounded flex flex-col items-center justify-center text-center" data-task="dodo">
+                            <i class="fas fa-bed text-2xl text-purple-600"></i>
+                            <p class="text-xs mt-1">Dodo</p>
+                        </div>
+                        
+                        <!-- Baby Care -->
+                        <div class="task-item draggable p-2 bg-pink-100 rounded flex flex-col items-center justify-center text-center" data-task="couche">
+                            <i class="fas fa-baby text-2xl text-pink-600"></i>
+                            <p class="text-xs mt-1">Change</p>
+                        </div>
+                        <div class="task-item draggable p-2 bg-pink-100 rounded flex flex-col items-center justify-center text-center" data-task="sieste">
+                            <i class="fas fa-moon text-2xl text-pink-600"></i>
+                            <p class="text-xs mt-1">Sieste</p>
+                        </div>
+                        
+                        <!-- Quality Time -->
+                        <div class="task-item draggable p-2 bg-indigo-100 rounded flex flex-col items-center justify-center text-center" data-task="jeu">
+                            <i class="fas fa-gamepad text-2xl text-indigo-600"></i>
+                            <p class="text-xs mt-1">Jeux</p>
+                        </div>
+                        <div class="task-item draggable p-2 bg-indigo-100 rounded flex flex-col items-center justify-center text-center" data-task="histoire">
+                            <i class="fas fa-book-reader text-2xl text-indigo-600"></i>
+                            <p class="text-xs mt-1">Histoire</p>
+                        </div>
+                        <div class="task-item draggable p-2 bg-indigo-100 rounded flex flex-col items-center justify-center text-center" data-task="famille">
+                            <i class="fas fa-users text-2xl text-indigo-600"></i>
+                            <p class="text-xs mt-1">Temps famille</p>
+                        </div>
+                        <div class="task-item draggable p-2 bg-indigo-100 rounded flex flex-col items-center justify-center text-center" data-task="sortie">
+                            <i class="fas fa-walking text-2xl text-indigo-600"></i>
+                            <p class="text-xs mt-1">Sortie</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Add Custom Task -->
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <h4 class="font-semibold mb-3">Ajouter une activité personnalisée</h4>
+                    
+                    <div class="flex flex-wrap items-end gap-4">
+                        <div class="w-full md:w-1/3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nom de l'activité</label>
+                            <input type="text" id="custom-task-name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: Piano">
+                        </div>
+                        <div class="w-full md:w-1/3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Couleur</label>
+                            <select id="custom-task-color" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <option value="blue">Bleu (Éducation)</option>
+                                <option value="green">Vert (Religion)</option>
+                                <option value="yellow">Jaune (Ménage)</option>
+                                <option value="purple">Violet (Routine)</option>
+                                <option value="pink">Rose (Bébé)</option>
+                                <option value="indigo">Indigo (Temps qualité)</option>
+                                <option value="red">Rouge</option>
+                                <option value="orange">Orange</option>
+                            </select>
+                        </div>
+                        <div class="w-full md:w-1/3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Icône</label>
+                            <select id="custom-task-icon" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <option value="fa-star">Étoile</option>
+                                <option value="fa-heart">Cœur</option>
+                                <option value="fa-music">Musique</option>
+                                <option value="fa-pen">Stylo</option>
+                                <option value="fa-paint-brush">Pinceau</option>
+                                <option value="fa-basketball-ball">Basket</option>
+                                <option value="fa-football-ball">Football</option>
+                                <option value="fa-bicycle">Vélo</option>
+                                <option value="fa-swimming-pool">Natation</option>
+                                <option value="fa-pizza-slice">Nourriture</option>
+                                <option value="fa-car">Voiture</option>
+                                <option value="fa-bus">Bus</option>
+                            </select>
+                        </div>
+                        <div class="w-full md:w-auto">
+                            <button id="add-custom-task" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                                <i class="fas fa-plus mr-2"></i>Ajouter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tasks Tab -->
+        <div id="tasks" class="tab-content">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Tâches Ménagères & Responsabilités</h2>
+            
+            <!-- Weekly Task Rotation -->
+            <div class="mb-10">
+                <h3 class="text-xl font-semibold mb-4 text-blue-700">Système de rotation des tâches</h3>
+                
+                <div class="bg-white rounded-lg shadow-md p-4 mb-8 overflow-x-auto task-rotator">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr>
+                                <th class="p-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Tâche</th>
+                                <th class="p-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">Lundi</th>
+                                <th class="p-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">Mardi</th>
+                                <th class="p-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">Mercredi</th>
+                                <th class="p-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">Jeudi</th>
+                                <th class="p-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">Vendredi</th>
+                                <th class="p-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">Samedi</th>
+                                <th class="p-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">Dimanche</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="p-3 text-sm font-medium text-gray-900 bg-yellow-50">Rangement salon</td>
+                                <td class="p-3 dropzone-task" data-task="salon" data-day="lundi"></td>
+                                <td class="p-3 dropzone-task" data-task="salon" data-day="mardi"></td>
+                                <td class="p-3 dropzone-task" data-task="salon" data-day="mercredi"></td>
+                                <td class="p-3 dropzone-task" data-task="salon" data-day="jeudi"></td>
+                                <td class="p-3 dropzone-task" data-task="salon" data-day="vendredi"></td>
+                                <td class="p-3 dropzone-task" data-task="salon" data-day="samedi"></td>
+                                <td class="p-3 dropzone-task" data-task="salon" data-day="dimanche"></td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3 text-sm font-medium text-gray-900 bg-yellow-50">Vaisselle</td>
+                                <td class="p-3 dropzone-task" data-task="vaisselle" data-day="lundi"></td>
+                                <td class="p-3 dropzone-task" data-task="vaisselle" data-day="mardi"></td>
+                                <td class="p-3 dropzone-task" data-task="vaisselle" data-day="mercredi"></td>
+                                <td class="p-3 dropzone-task" data-task="vaisselle" data-day="jeudi"></td>
+                                <td class="p-3 dropzone-task" data-task="vaisselle" data-day="vendredi"></td>
+                                <td class="p-3 dropzone-task" data-task="vaisselle" data-day="samedi"></td>
+                                <td class="p-3 dropzone-task" data-task="vaisselle" data-day="dimanche"></td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3 text-sm font-medium text-gray-900 bg-yellow-50">Mettre la table</td>
+                                <td class="p-3 dropzone-task" data-task="table" data-day="lundi"></td>
+                                <td class="p-3 dropzone-task" data-task="table" data-day="mardi"></td>
+                                <td class="p-3 dropzone-task" data-task="table" data-day="mercredi"></td>
+                                <td class="p-3 dropzone-task" data-task="table" data-day="jeudi"></td>
+                                <td class="p-3 dropzone-task" data-task="table" data-day="vendredi"></td>
+                                <td class="p-3 dropzone-task" data-task="table" data-day="samedi"></td>
+                                <td class="p-3 dropzone-task" data-task="table" data-day="dimanche"></td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3 text-sm font-medium text-gray-900 bg-yellow-50">Poubelles</td>
+                                <td class="p-3 dropzone-task" data-task="poubelles" data-day="lundi"></td>
+                                <td class="p-3 dropzone-task" data-task="poubelles" data-day="mardi"></td>
+                                <td class="p-3 dropzone-task" data-task="poubelles" data-day="mercredi"></td>
+                                <td class="p-3 dropzone-task" data-task="poubelles" data-day="jeudi"></td>
+                                <td class="p-3 dropzone-task" data-task="poubelles" data-day="vendredi"></td>
+                                <td class="p-3 dropzone-task" data-task="poubelles" data-day="samedi"></td>
+                                <td class="p-3 dropzone-task" data-task="poubelles" data-day="dimanche"></td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3 text-sm font-medium text-gray-900 bg-yellow-50">Balayer</td>
+                                <td class="p-3 dropzone-task" data-task="balayer" data-day="lundi"></td>
+                                <td class="p-3 dropzone-task" data-task="balayer" data-day="mardi"></td>
+                                <td class="p-3 dropzone-task" data-task="balayer" data-day="mercredi"></td>
+                                <td class="p-3 dropzone-task" data-task="balayer" data-day="jeudi"></td>
+                                <td class="p-3 dropzone-task" data-task="balayer" data-day="vendredi"></td>
+                                <td class="p-3 dropzone-task" data-task="balayer" data-day="samedi"></td>
+                                <td class="p-3 dropzone-task" data-task="balayer" data-day="dimanche"></td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3 text-sm font-medium text-gray-900 bg-yellow-50">Plier le linge</td>
+                                <td class="p-3 dropzone-task" data-task="linge" data-day="lundi"></td>
+                                <td class="p-3 dropzone-task" data-task="linge" data-day="mardi"></td>
+                                <td class="p-3 dropzone-task" data-task="linge" data-day="mercredi"></td>
+                                <td class="p-3 dropzone-task" data-task="linge" data-day="jeudi"></td>
+                                <td class="p-3 dropzone-task" data-task="linge" data-day="vendredi"></td>
+                                <td class="p-3 dropzone-task" data-task="linge" data-day="samedi"></td>
+                                <td class="p-3 dropzone-task" data-task="linge" data-day="dimanche"></td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3 text-sm font-medium text-gray-900 bg-yellow-50">Ranger jouets</td>
+                                <td class="p-3 dropzone-task" data-task="jouets" data-day="lundi"></td>
+                                <td class="p-3 dropzone-task" data-task="jouets" data-day="mardi"></td>
+                                <td class="p-3 dropzone-task" data-task="jouets" data-day="mercredi"></td>
+                                <td class="p-3 dropzone-task" data-task="jouets" data-day="jeudi"></td>
+                                <td class="p-3 dropzone-task" data-task="jouets" data-day="vendredi"></td>
+                                <td class="p-3 dropzone-task" data-task="jouets" data-day="samedi"></td>
+                                <td class="p-3 dropzone-task" data-task="jouets" data-day="dimanche"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-4 mb-8 no-print">
+                    <h4 class="font-semibold mb-4">Personnes à assigner (glisser vers le tableau)</h4>
+                    
+                    <div class="flex flex-wrap gap-2">
+                        <div class="person-item draggable p-2 bg-blue-100 rounded text-center" data-person="maman">
+                            <p class="text-sm font-medium text-blue-700">Maman</p>
+                        </div>
+                        <div class="person-item draggable p-2 bg-indigo-100 rounded text-center" data-person="mohammed">
+                            <p class="text-sm font-medium text-indigo-700">Mohammed</p>
+                        </div>
+                        <div class="person-item draggable p-2 bg-purple-100 rounded text-center" data-person="dialia">
+                            <p class="text-sm font-medium text-purple-700">Dialia</p>
+                        </div>
+                        <div class="person-item draggable p-2 bg-pink-100 rounded text-center" data-person="abderahman">
+                            <p class="text-sm font-medium text-pink-700">Abderahman</p>
+                        </div>
+                        <div class="person-item draggable p-2 bg-red-100 rounded text-center" data-person="idriss">
+                            <p class="text-sm font-medium text-red-700">Idriss</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Add Custom Task to Rotation -->
+                <div class="bg-white rounded-lg shadow-md p-4 no-print">
+                    <h4 class="font-semibold mb-3">Ajouter une tâche ménagère</h4>
+                    
+                    <div class="flex flex-wrap items-end gap-4">
+                        <div class="w-full md:w-2/3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nom de la tâche</label>
+                            <input type="text" id="custom-chore-name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: Nourrir les animaux">
+                        </div>
+                        <div class="w-full md:w-auto">
+                            <button id="add-custom-chore" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                                <i class="fas fa-plus mr-2"></i>Ajouter à la rotation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Evening Cleanup Routine -->
+            <div class="mb-10">
+                <h3 class="text-xl font-semibold mb-4 text-blue-700">Routine de rangement du soir</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="card p-4">
+                        <h4 class="font-bold text-blue-600 mb-3">Pour les grands (Mohammed & Dialia)</h4>
+                        <ol class="space-y-2 pl-5 list-decimal">
+                            <li>Ranger ses affaires personnelles</li>
+                            <li>Vérifier que le salon est en ordre</li>
+                            <li>Aider à vérifier le travail des plus petits</li>
+                            <li>Préparer les sacs et tenues pour le lendemain</li>
+                            <li>10 minutes de nettoyage supplémentaire au choix</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="card p-4">
+                        <h4 class="font-bold text-blue-600 mb-3">Pour les moyens (Abderahman & Idriss)</h4>
+                        <ol class="space-y-2 pl-5 list-decimal">
+                            <li>Ranger tous leurs jouets</li>
+                            <li>Mettre les vêtements sales dans le panier</li>
+                            <li>Ranger leur chambre (lit, bureau)</li>
+                            <li>Préparer leurs affaires pour le lendemain avec aide</li>
+                            <li>Aider pour une petite tâche simple au choix</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="card p-4">
+                        <h4 class="font-bold text-blue-600 mb-3">Pour les parents</h4>
+                        <ol class="space-y-2 pl-5 list-decimal">
+                            <li>Superviser le rangement de chacun</li>
+                            <li>Vérifier que la cuisine est propre</li>
+                            <li>Préparer les repas du lendemain</li>
+                            <li>S'occuper de Fatima pendant le rangement</li>
+                            <li>Faire un rapide tour pour vérifier l'ensemble</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <div class="mt-6 bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500">
+                    <h4 class="font-bold text-blue-700 mb-2">Astuce pour faciliter le rangement du soir:</h4>
+                    <p>Mettre de la musique entraînante pendant 15 minutes et chronométrer le rangement. Transformer ce moment en défi amusant où tout le monde participe en même temps.</p>
+                </div>
+            </div>
+            
+            <!-- Weekly Deep Cleaning Schedule -->
+            <div class="mb-10">
+                <h3 class="text-xl font-semibold mb-4 text-blue-700">Planning de ménage hebdomadaire</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="card p-4">
+                        <h4 class="font-bold text-blue-600 border-b pb-2 mb-3">Lundi - Cuisine</h4>
+                        <ul class="space-y-2">
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Nettoyer les surfaces
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Laver le sol
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Nettoyer le réfrigérateur
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Vider les poubelles
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card p-4">
+                        <h4 class="font-bold text-blue-600 border-b pb-2 mb-3">Mardi - Salon</h4>
+                        <ul class="space-y-2">
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Passer l'aspirateur/balai
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Dépoussiérer les meubles
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Ranger les affaires qui traînent
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Nettoyer les vitres (1x/2 semaines)
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card p-4">
+                        <h4 class="font-bold text-blue-600 border-b pb-2 mb-3">Mercredi - Chambres</h4>
+                        <ul class="space-y-2">
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Changer les draps
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Passer l'aspirateur
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Ranger les armoires
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Dépoussiérer les surfaces
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card p-4">
+                        <h4 class="font-bold text-blue-600 border-b pb-2 mb-3">Jeudi - Salle de bain</h4>
+                        <ul class="space-y-2">
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Nettoyer les toilettes
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Laver la douche/baignoire
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Nettoyer le lavabo et miroir
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Laver le sol
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card p-4">
+                        <h4 class="font-bold text-blue-600 border-b pb-2 mb-3">Vendredi - Lessive</h4>
+                        <ul class="space-y-2">
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Laver les vêtements
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Plier et ranger
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Trier les vêtements abîmés/petits
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Nettoyer la zone de lessive
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card p-4">
+                        <h4 class="font-bold text-blue-600 border-b pb-2 mb-3">Samedi/Dimanche - Maintenance</h4>
+                        <ul class="space-y-2">
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Tâches en retard de la semaine
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Nettoyage approfondi d'une zone
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Rangement des placards (1x/mois)
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Planification de la semaine suivante
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Prayer Learning Tab -->
+        <div id="prayer" class="tab-content">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Apprentissage de la Prière</h2>
+            
+            <!-- Prayer Positions Guide -->
+            <div class="mb-10">
+                <h3 class="text-xl font-semibold mb-4 text-blue-700">Les positions de la prière</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Position 1: Debout (Qiyam) -->
+                    <div class="prayer-position">
+                        <h4 class="font-bold text-green-600 mb-2">1. Debout (Qiyam)</h4>
+                        <div class="flex justify-center mb-3">
+                            <img src="https://cdn.jsdelivr.net/gh/Abdullah-Aljumah/prayer-positions@main/position1.png" alt="Position debout" class="h-40 object-contain">
+                        </div>
+                        <div>
+                            <p class="text-sm mb-2"><strong>Instructions:</strong> Se tenir debout, face à la direction de la Qibla.</p>
+                            <p class="text-sm mb-1"><strong>À réciter:</strong></p>
+                            <p class="arabic-text mb-1">الله أكبر</p>
+                            <p class="text-xs text-gray-600 mb-2">Allahu Akbar (Dieu est le plus grand)</p>
+                            <p class="text-xs text-gray-600">Puis réciter la Sourate Al-Fatiha</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Position 2: Inclinaison (Ruku) -->
+                    <div class="prayer-position">
+                        <h4 class="font-bold text-green-600 mb-2">2. Inclinaison (Ruku)</h4>
+                        <div class="flex justify-center mb-3">
+                            <img src="https://cdn.jsdelivr.net/gh/Abdullah-Aljumah/prayer-positions@main/position2.png" alt="Position inclinaison" class="h-40 object-contain">
+                        </div>
+                        <div>
+                            <p class="text-sm mb-2"><strong>Instructions:</strong> Se pencher en avant, mains sur les genoux.</p>
+                            <p class="text-sm mb-1"><strong>À réciter:</strong></p>
+                            <p class="arabic-text mb-1">سبحان ربي العظيم</p>
+                            <p class="text-xs text-gray-600">Subhana Rabbi al-Adhim (Gloire à mon Seigneur le Très Grand)</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Position 3: Debout après Ruku -->
+                    <div class="prayer-position">
+                        <h4 class="font-bold text-green-600 mb-2">3. Redressement</h4>
+                        <div class="flex justify-center mb-3">
+                            <img src="https://cdn.jsdelivr.net/gh/Abdullah-Aljumah/prayer-positions@main/position3.png" alt="Position redressement" class="h-40 object-contain">
+                        </div>
+                        <div>
+                            <p class="text-sm mb-2"><strong>Instructions:</strong> Se relever à la position debout.</p>
+                            <p class="text-sm mb-1"><strong>À réciter:</strong></p>
+                            <p class="arabic-text mb-1">سمع الله لمن حمده</p>
+                            <p class="text-xs text-gray-600 mb-2">Sami'a Allahu liman hamidah (Allah entend celui qui Le loue)</p>
+                            <p class="arabic-text mb-1">ربنا لك الحمد</p>
+                            <p class="text-xs text-gray-600">Rabbana wa lakal hamd (Notre Seigneur, à Toi la louange)</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Position 4: Prosternation (Sujud) -->
+                    <div class="prayer-position">
+                        <h4 class="font-bold text-green-600 mb-2">4. Prosternation (Sujud)</h4>
+                        <div class="flex justify-center mb-3">
+                            <img src="https://cdn.jsdelivr.net/gh/Abdullah-Aljumah/prayer-positions@main/position4.png" alt="Position prosternation" class="h-40 object-contain">
+                        </div>
+                        <div>
+                            <p class="text-sm mb-2"><strong>Instructions:</strong> Front, nez, paumes, genoux et orteils touchant le sol.</p>
+                            <p class="text-sm mb-1"><strong>À réciter:</strong></p>
+                            <p class="arabic-text mb-1">سبحان ربي الأعلى</p>
+                            <p class="text-xs text-gray-600">Subhana Rabbi al-A'la (Gloire à mon Seigneur le Très Haut)</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Position 5: Assis entre deux prosternations -->
+                    <div class="prayer-position">
+                        <h4 class="font-bold text-green-600 mb-2">5. Position assise</h4>
+                        <div class="flex justify-center mb-3">
+                            <img src="https://cdn.jsdelivr.net/gh/Abdullah-Aljumah/prayer-positions@main/position5.png" alt="Position assise" class="h-40 object-contain">
+                        </div>
+                        <div>
+                            <p class="text-sm mb-2"><strong>Instructions:</strong> S'asseoir sur le pied gauche, pied droit relevé.</p>
+                            <p class="text-sm mb-1"><strong>À réciter:</strong></p>
+                            <p class="arabic-text mb-1">رب اغفر لي</p>
+                            <p class="text-xs text-gray-600">Rabbi ghfir li (Seigneur, pardonne-moi)</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Position 6: Salutation finale (Taslim) -->
+                    <div class="prayer-position">
+                        <h4 class="font-bold text-green-600 mb-2">6. Salutation finale (Taslim)</h4>
+                        <div class="flex justify-center mb-3">
+                            <img src="https://cdn.jsdelivr.net/gh/Abdullah-Aljumah/prayer-positions@main/position6.png" alt="Position salutation" class="h-40 object-contain">
+                        </div>
+                        <div>
+                            <p class="text-sm mb-2"><strong>Instructions:</strong> Assis, tourner la tête à droite puis à gauche.</p>
+                            <p class="text-sm mb-1"><strong>À réciter:</strong></p>
+                            <p class="arabic-text mb-1">السلام عليكم ورحمة الله</p>
+                            <p class="text-xs text-gray-600">Assalamu alaikum wa rahmatullah (Que la paix et la miséricorde d'Allah soient sur vous)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Prayer Learning Tracking -->
+            <div class="mb-10">
+                <h3 class="text-xl font-semibold mb-4 text-blue-700">Suivi d'apprentissage de la prière</h3>
+                
+                <div class="bg-white rounded-lg shadow-md p-4 mb-8">
+                    <h4 class="font-bold text-green-600 mb-4">Pour Abderahman (7 ans) et Idriss (5 ans)</h4>
+                    
+                    <table class="min-w-full border">
+                        <thead>
+                            <tr>
+                                <th class="border px-4 py-2 bg-green-50">Étape d'apprentissage</th>
+                                <th class="border px-4 py-2 bg-green-50">Abderahman</th>
+                                <th class="border px-4 py-2 bg-green-50">Idriss</th>
+                                <th class="border px-4 py-2 bg-green-50">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border px-4 py-2">Connaître les positions</td>
+                                <td class="border px-4 py-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-green-600">
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-green-600">
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <input type="text" class="w-full px-2 py-1 border-b border-gray-300 focus:outline-none focus:border-green-500" placeholder="Notes...">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2">Apprendre Al-Fatiha</td>
+                                <td class="border px-4 py-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-green-600">
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-green-600">
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <input type="text" class="w-full px-2 py-1 border-b border-gray-300 focus:outline-none focus:border-green-500" placeholder="Notes...">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2">Formules de Ruku & Sujud</td>
+                                <td class="border px-4 py-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-green-600">
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-green-600">
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <input type="text" class="w-full px-2 py-1 border-b border-gray-300 focus:outline-none focus:border-green-500" placeholder="Notes...">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2">Tashahhud</td>
+                                <td class="border px-4 py-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-green-600">
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-green-600">
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <input type="text" class="w-full px-2 py-1 border-b border-gray-300 focus:outline-none focus:border-green-500" placeholder="Notes...">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2">Prière complète 2 rakaats</td>
+                                <td class="border px-4 py-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-green-600">
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-green-600">
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <input type="text" class="w-full px-2 py-1 border-b border-gray-300 focus:outline-none focus:border-green-500" placeholder="Notes...">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2">Prière complète 4 rakaats</td>
+                                <td class="border px-4 py-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-green-600">
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-green-600">
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <input type="text" class="w-full px-2 py-1 border-b border-gray-300 focus:outline-none focus:border-green-500" placeholder="Notes...">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2">Connaître tous les horaires</td>
+                                <td class="border px-4 py-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-green-600">
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-green-600">
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <input type="text" class="w-full px-2 py-1 border-b border-gray-300 focus:outline-none focus:border-green-500" placeholder="Notes...">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2">Ablutions complètes</td>
+                                <td class="border px-4 py-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-green-600">
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <input type="checkbox" class="form-checkbox h-5 w-5 text-green-600">
+                                </td>
+                                <td class="border px-4 py-2">
+                                    <input type="text" class="w-full px-2 py-1 border-b border-gray-300 focus:outline-none focus:border-green-500" placeholder="Notes...">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Ablution Guide -->
+            <div class="mb-10">
+                <h3 class="text-xl font-semibold mb-4 text-blue-700">Guide des ablutions (Wudu)</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="card p-4">
+                        <h4 class="font-bold text-green-600 mb-2">1. L'intention</h4>
+                        <p class="text-sm">Commencer par l'intention de faire les ablutions pour la prière.</p>
+                        <p class="arabic-text mt-2 text-center">بسم الله</p>
+                        <p class="text-xs text-center text-gray-600 mt-1">Bismillah (Au nom d'Allah)</p>
+                    </div>
+                    
+                    <div class="card p-4">
+                        <h4 class="font-bold text-green-600 mb-2">2. Laver les mains</h4>
+                        <p class="text-sm">Laver les mains jusqu'aux poignets trois fois.</p>
+                        <div class="flex justify-center mt-2">
+                            <img src="https://cdn.jsdelivr.net/gh/Abdullah-Aljumah/wudu-steps@main/hands.png" alt="Laver les mains" class="h-20 object-contain">
+                        </div>
+                    </div>
+                    
+                    <div class="card p-4">
+                        <h4 class="font-bold text-green-600 mb-2">3. Rincer la bouche</h4>
+                        <p class="text-sm">Prendre de l'eau et se rincer la bouche trois fois.</p>
+                        <div class="flex justify-center mt-2">
+                            <img src="https://cdn.jsdelivr.net/gh/Abdullah-Aljumah/wudu-steps@main/mouth.png" alt="Rincer la bouche" class="h-20 object-contain">
+                        </div>
+                    </div>
+                    
+                    <div class="card p-4">
+                        <h4 class="font-bold text-green-600 mb-2">4. Nettoyer le nez</h4>
+                        <p class="text-sm">Aspirer de l'eau par le nez puis l'expulser trois fois.</p>
+                        <div class="flex justify-center mt-2">
+                            <img src="https://cdn.jsdelivr.net/gh/Abdullah-Aljumah/wudu-steps@main/nose.png" alt="Nettoyer le nez" class="h-20 object-contain">
+                        </div>
+                    </div>
+                    
+                    <div class="card p-4">
+                        <h4 class="font-bold text-green-600 mb-2">5. Laver le visage</h4>
+                        <p class="text-sm">Laver tout le visage trois fois, du front au menton et d'une oreille à l'autre.</p>
+                        <div class="flex justify-center mt-2">
+                            <img src="https://cdn.jsdelivr.net/gh/Abdullah-Aljumah/wudu-steps@main/face.png" alt="Laver le visage" class="h-20 object-contain">
+                        </div>
+                    </div>
+                    
+                    <div class="card p-4">
+                        <h4 class="font-bold text-green-600 mb-2">6. Laver les bras</h4>
+                        <p class="text-sm">Laver les bras jusqu'aux coudes trois fois, en commençant par le droit.</p>
+                        <div class="flex justify-center mt-2">
+                            <img src="https://cdn.jsdelivr.net/gh/Abdullah-Aljumah/wudu-steps@main/arms.png" alt="Laver les bras" class="h-20 object-contain">
+                        </div>
+                    </div>
+                    
+                    <div class="card p-4">
+                        <h4 class="font-bold text-green-600 mb-2">7. Essuyer la tête</h4>
+                        <p class="text-sm">Passer les mains mouillées sur la tête, de l'avant vers l'arrière puis inversement.</p>
+                        <div class="flex justify-center mt-2">
+                            <img src="https://cdn.jsdelivr.net/gh/Abdullah-Aljumah/wudu-steps@main/head.png" alt="Essuyer la tête" class="h-20 object-contain">
+                        </div>
+                    </div>
+                    
+                    <div class="card p-4">
+                        <h4 class="font-bold text-green-600 mb-2">8. Essuyer les oreilles</h4>
+                        <p class="text-sm">Avec les doigts mouillés, nettoyer l'intérieur et l'extérieur des oreilles.</p>
+                        <div class="flex justify-center mt-2">
+                            <img src="https://cdn.jsdelivr.net/gh/Abdullah-Aljumah/wudu-steps@main/ears.png" alt="Essuyer les oreilles" class="h-20 object-contain">
+                        </div>
+                    </div>
+                    
+                    <div class="card p-4">
+                        <h4 class="font-bold text-green-600 mb-2">9. Laver les pieds</h4>
+                        <p class="text-sm">Laver les pieds jusqu'aux chevilles trois fois, en commençant par le droit.</p>
+                        <div class="flex justify-center mt-2">
+                            <img src="https://cdn.jsdelivr.net/gh/Abdullah-Aljumah/wudu-steps@main/feet.png" alt="Laver les pieds" class="h-20 object-contain">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 bg-green-50 rounded-lg p-4 border-l-4 border-green-500">
+                    <h4 class="font-bold text-green-700 mb-2">Invocation après les ablutions:</h4>
+                    <p class="arabic-text text-center mb-2">أشهد أن لا إله إلا الله وحده لا شريك له وأشهد أن محمداً عبده ورسوله</p>
+                    <p class="text-sm text-center">Ash-hadu an la ilaha illa Allah wahdahu la sharika lah, wa ash-hadu anna Muhammadan 'abduhu wa rasuluh</p>
+                    <p class="text-xs text-center text-gray-600 mt-1">(Je témoigne qu'il n'y a de divinité qu'Allah, l'Unique, sans associé, et je témoigne que Muhammad est Son serviteur et Son messager)</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Invocations Tab -->
+        <div id="invocations" class="tab-content">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Invocations du Matin et du Soir</h2>
+            
+            <!-- Printable Invocation Cards -->
+            <div class="mb-10">
+                <h3 class="text-xl font-semibold mb-4 text-blue-700">Cartes d'invocations à imprimer</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Morning Invocation 1 -->
+                    <div class="invoke-card bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="bg-yellow-100 px-4 py-2 border-b border-yellow-200">
+                            <h4 class="font-bold text-yellow-700">Invocation du matin #1</h4>
+                        </div>
+                        <div class="p-4">
+                            <div class="arabic-text mb-3 text-xl">
+                                اللَّهُمَّ بِكَ أَصْبَحْنَا، وَبِكَ أَمْسَيْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ النُّشُورُ
+                            </div>
+                            <div class="mb-3">
+                                <p class="text-xs text-gray-500">Translittération:</p>
+                                <p class="text-sm">Allahumma bika asbahna, wa bika amsayna, wa bika nahya, wa bika namout, wa ilayka an-nushoor</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">Traduction:</p>
+                                <p class="text-sm">Ô Allah, c'est par Toi que nous nous retrouvons au matin et au soir, c'est par Toi que nous vivons et mourons, et vers Toi se fera le retour.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Morning Invocation 2 -->
+                    <div class="invoke-card bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="bg-yellow-100 px-4 py-2 border-b border-yellow-200">
+                            <h4 class="font-bold text-yellow-700">Invocation du matin #2</h4>
+                        </div>
+                        <div class="p-4">
+                            <div class="arabic-text mb-3 text-xl">
+                                أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لاَ إِلَـهَ إِلاَّ اللهُ وَحْدَهُ لاَ شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ
+                            </div>
+                            <div class="mb-3">
+                                <p class="text-xs text-gray-500">Translittération:</p>
+                                <p class="text-sm">Asbahna wa asbaha al-mulku lillah, wal-hamdu lillah, la ilaha illa Allahu wahdahu la sharika lah, lahul-mulku wa lahul-hamd, wa huwa 'ala kulli shay'in qadir</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">Traduction:</p>
+                                <p class="text-sm">Nous voilà au matin et à Allah appartient toute souveraineté. Louange à Allah, nul ne mérite d'être adoré excepté Allah, Seul sans associé. À Lui la royauté et à Lui la louange et Il est capable de toute chose.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Evening Invocation 1 -->
+                    <div class="invoke-card bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="bg-indigo-100 px-4 py-2 border-b border-indigo-200">
+                            <h4 class="font-bold text-indigo-700">Invocation du soir #1</h4>
+                        </div>
+                        <div class="p-4">
+                            <div class="arabic-text mb-3 text-xl">
+                                اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ الْمَصِيرُ
+                            </div>
+                            <div class="mb-3">
+                                <p class="text-xs text-gray-500">Translittération:</p>
+                                <p class="text-sm">Allahumma bika amsayna, wa bika asbahna, wa bika nahya, wa bika namout, wa ilayka al-maseer</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">Traduction:</p>
+                                <p class="text-sm">Ô Allah, c'est par Toi que nous nous retrouvons au soir et au matin, c'est par Toi que nous vivons et mourons, et vers Toi est le devenir.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Evening Invocation 2 -->
+                    <div class="invoke-card bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="bg-indigo-100 px-4 py-2 border-b border-indigo-200">
+                            <h4 class="font-bold text-indigo-700">Invocation du soir #2</h4>
+                        </div>
+                        <div class="p-4">
+                            <div class="arabic-text mb-3 text-xl">
+                                أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لاَ إِلَـهَ إِلاَّ اللهُ وَحْدَهُ لاَ شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ
+                            </div>
+                            <div class="mb-3">
+                                <p class="text-xs text-gray-500">Translittération:</p>
+                                <p class="text-sm">Amsayna wa amsa al-mulku lillah, wal-hamdu lillah, la ilaha illa Allahu wahdahu la sharika lah, lahul-mulku wa lahul-hamd, wa huwa 'ala kulli shay'in qadir</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">Traduction:</p>
+                                <p class="text-sm">Nous voilà au soir et à Allah appartient toute souveraineté. Louange à Allah, nul ne mérite d'être adoré excepté Allah, Seul sans associé. À Lui la royauté et à Lui la louange et Il est capable de toute chose.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Protection Invocation -->
+                    <div class="invoke-card bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="bg-green-100 px-4 py-2 border-b border-green-200">
+                            <h4 class="font-bold text-green-700">Invocation de protection</h4>
+                        </div>
+                        <div class="p-4">
+                            <div class="arabic-text mb-3 text-xl">
+                                بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ
+                            </div>
+                            <div class="mb-3">
+                                <p class="text-xs text-gray-500">Translittération:</p>
+                                <p class="text-sm">Bismillahi al-ladhi la yadurru ma'a ismihi shay'un fil-ardi wa la fis-sama'i, wa huwas-Sami'ul-'Alim</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">Traduction:</p>
+                                <p class="text-sm">Au nom d'Allah, par le nom duquel rien ne peut nuire, ni sur terre ni au ciel, et Il est l'Audient, l'Omniscient.</p>
+                            </div>
+                            <div class="mt-2 text-xs text-gray-600">
+                                <p><i>À répéter trois fois le matin et trois fois le soir.</i></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Gratitude Invocation -->
+                    <div class="invoke-card bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="bg-green-100 px-4 py-2 border-b border-green-200">
+                            <h4 class="font-bold text-green-700">Invocation de gratitude</h4>
+                        </div>
+                        <div class="p-4">
+                            <div class="arabic-text mb-3 text-xl">
+                                اللَّهُمَّ مَا أَصْبَحَ بِي مِنْ نِعْمَةٍ أَوْ بِأَحَدٍ مِنْ خَلْقِكَ فَمِنْكَ وَحْدَكَ لَا شَرِيكَ لَكَ، فَلَكَ الْحَمْدُ وَلَكَ الشُّكْرُ
+                            </div>
+                            <div class="mb-3">
+                                <p class="text-xs text-gray-500">Translittération:</p>
+                                <p class="text-sm">Allahumma ma asbaha bi min ni'matin aw bi-ahadin min khalqika fa minka wahdaka la sharika lak, fa lakal-hamdu wa lakash-shukr</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">Traduction:</p>
+                                <p class="text-sm">Ô Allah, tout bienfait dont je jouis ou dont jouit l'une de Tes créatures provient de Toi Seul, sans associé. À Toi la louange et à Toi les remerciements.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 bg-yellow-50 rounded-lg p-4 border-l-4 border-yellow-500">
+                    <h4 class="font-bold text-yellow-700 mb-2">Astuce pour apprendre les invocations:</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li>Commencer par une invocation à la fois, ne pas essayer d'apprendre toutes en même temps</li>
+                        <li>Réciter ensemble en famille le matin au petit-déjeuner et le soir avant le dîner</li>
+                        <li>Imprimer ces cartes et les afficher dans des endroits visibles (réfrigérateur, salle de bain)</li>
+                        <li>Récompenser les enfants quand ils ont appris une nouvelle invocation</li>
+                        <li>Expliquer la signification des invocations pour faciliter la mémorisation</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Weekly Tracking -->
+            <div class="mb-10">
+                <h3 class="text-xl font-semibold mb-4 text-blue-700">Suivi hebdomadaire des invocations</h3>
+                
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <table class="min-w-full border">
+                        <thead>
+                            <tr>
+                                <th class="border px-4 py-2 bg-blue-50">Invocation</th>
+                                <th class="border px-4 py-2 bg-blue-50">Lundi</th>
+                                <th class="border px-4 py-2 bg-blue-50">Mardi</th>
+                                <th class="border px-4 py-2 bg-blue-50">Mercredi</th>
+                                <th class="border px-4 py-2 bg-blue-50">Jeudi</th>
+                                <th class="border px-4 py-2 bg-blue-50">Vendredi</th>
+                                <th class="border px-4 py-2 bg-blue-50">Samedi</th>
+                                <th class="border px-4 py-2 bg-blue-50">Dimanche</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border px-4 py-2 font-medium">Matin #1</td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2 font-medium">Matin #2</td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2 font-medium">Soir #1</td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2 font-medium">Soir #2</td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2 font-medium">Protection (3x)</td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2 font-medium">Gratitude</td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                                <td class="border px-4 py-2"><input type="checkbox" class="form-checkbox h-5 w-5 text-green-600"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Arabic Learning Tab -->
+        <div id="arabic" class="tab-content">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Apprentissage de l'Arabe</h2>
+            
+            <!-- Arabic Alphabet -->
+            <div class="mb-10">
+                <h3 class="text-xl font-semibold mb-4 text-blue-700">Alphabet Arabe</h3>
+                
+                <div class="bg-white rounded-lg shadow-md p-4 mb-8">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <!-- First row of letters -->
+                        <div class="border rounded p-3 flex flex-col items-center">
+                            <span class="arabic-text text-4xl mb-2">أ</span>
+                            <p class="text-lg font-semibold">Alif</p>
+                            <p class="text-sm text-gray-500">Prononciation: "a"</p>
+                        </div>
+                        <div class="border rounded p-3 flex flex-col items-center">
+                            <span class="arabic-text text-4xl mb-2">ب</span>
+                            <p class="text-lg font-semibold">Ba</p>
+                            <p class="text-sm text-gray-500">Prononciation: "b"</p>
+                        </div>
+                        <div class="border rounded p-3 flex flex-col items-center">
+                            <span class="arabic-text text-4xl mb-2">ت</span>
+                            <p class="text-lg font-semibold">Ta</p>
+                            <p class="text-sm text-gray-500">Prononciation: "t"</p>
+                        </div>
+                        <div class="border rounded p-3 flex flex-col items-center">
+                            <span class="arabic-text text-4xl mb-2">ث</span>
+                            <p class="text-lg font-semibold">Tha</p>
+                            <p class="text-sm text-gray-500">Prononciation: "th"</p>
+                        </div>
+                        
+                        <!-- Second row of letters -->
+                        <div class="border rounded p-3 flex flex-col items-center">
+                            <span class="arabic-text text-4xl mb-2">ج</span>
+                            <p class="text-lg font-semibold">Jim</p>
+                            <p class="text-sm text-gray-500">Prononciation: "j"</p>
+                        </div>
+                        <div class="border rounded p-3 flex flex-col items-center">
+                            <span class="arabic-text text-4xl mb-2">ح</span>
+                            <p class="text-lg font-semibold">Ha</p>
+                            <p class="text-sm text-gray-500">Prononciation: "h" (aspiré)</p>
+                        </div>
+                        <div class="border rounded p-3 flex flex-col items-center">
+                            <span class="arabic-text text-4xl mb-2">خ</span>
+                            <p class="text-lg font-semibold">Kha</p>
+                            <p class="text-sm text-gray-500">Prononciation: "kh"</p>
+                        </div>
+                        <div class="border rounded p-3 flex flex-col items-center">
+                            <span class="arabic-text text-4xl mb-2">د</span>
+                            <p class="text-lg font-semibold">Dal</p>
+                            <p class="text-sm text-gray-500">Prononciation: "d"</p>
+                        </div>
+                        
+                        <!-- More letters -->
+                        <div class="border rounded p-3 flex flex-col items-center">
+                            <span class="arabic-text text-4xl mb-2">ذ</span>
+                            <p class="text-lg font-semibold">Dhal</p>
+                            <p class="text-sm text-gray-500">Prononciation: "dh"</p>
+                        </div>
+                        <div class="border rounded p-3 flex flex-col items-center">
+                            <span class="arabic-text text-4xl mb-2">ر</span>
+                            <p class="text-lg font-semibold">Ra</p>
+                            <p class="text-sm text-gray-500">Prononciation: "r"</p>
+                        </div>
+                        <div class="border rounded p-3 flex flex-col items-center">
+                            <span class="arabic-text text-4xl mb-2">ز</span>
+                            <p class="text-lg font-semibold">Zay</p>
+                            <p class="text-sm text-gray-500">Prononciation: "z"</p>
+                        </div>
+                        <div class="border rounded p-3 flex flex-col items-center">
+                            <span class="arabic-text text-4xl mb-2">س</span>
+                            <p class="text-lg font-semibold">Sin</p>
+                            <p class="text-sm text-gray-500">Prononciation: "s"</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500 mb-6">
+                    <h4 class="font-bold text-blue-700 mb-2">Astuce pour l'apprentissage des lettres:</h4>
+                    <ul class="text-sm space-y-1">
+                        <li>Commencer par les lettres qui ressemblent à l'alphabet latin (ب/b, ت/t, ن/n)</li>
+                        <li>Pratiquer l'écriture en traçant avec le doigt, puis avec un crayon</li>
+                        <li>Util
+    <script id="html_badge_script1">
+        window.__genspark_remove_badge_link = "https://www.genspark.ai/api/html_badge/" +
+            "remove_badge?token=To%2FBnjzloZ3UfQdcSaYfDms4higPI1640GzaOATyJNtmNa1NP6pleFcVYn2Qbh48OYT%2FNHPtYIUtoeCHFUbqPTW%2BTjvIVLOITWbHmXwE5V1IqhKbIdHzLJDK9H3duGJ3tpYdR2TaDIujQhvR04ysvbsuw0NTpC7ox64usfz%2FW7QaD%2BYBjzRbVqLw6RiGjskF5JDZMxAtZDIrJk9KM%2F%2BbXdCSuoQaPGsYqqzxMA6eB%2BWb3DNU2RRTSa%2BjOzQBHIX513EMu80TGnXtXQNG%2F1bTZ%2BTCwQucCEKjl%2BXKiCz2VDBwMMRUAERHQMdy%2FPLMjfdkzdZqXpTjHSM2KwbVORiVQ%2FEbIi0Upq4WjpRVAOdc%2FEeWU1yF7L2FZYPy%2F2fFHz80z46aJQBnVBeboj21pdbZCDUoykRHMwmJHTakBef54mYy84XRTL12szJQrSliL%2FPESTQ%2B4rKH8i3HohSlujE3YHu5eME5VC%2F8pq6h16mCiskK%2F5ZXDAkYH9mdP9C2jd2Q%2FGWDVmHc3iHMBjySC28QbE9ShM93UaRoTNQYYwN3eoI%3D";
+        window.__genspark_locale = "fr-FR";
+        window.__genspark_token = "To/BnjzloZ3UfQdcSaYfDms4higPI1640GzaOATyJNtmNa1NP6pleFcVYn2Qbh48OYT/NHPtYIUtoeCHFUbqPTW+TjvIVLOITWbHmXwE5V1IqhKbIdHzLJDK9H3duGJ3tpYdR2TaDIujQhvR04ysvbsuw0NTpC7ox64usfz/W7QaD+YBjzRbVqLw6RiGjskF5JDZMxAtZDIrJk9KM/+bXdCSuoQaPGsYqqzxMA6eB+Wb3DNU2RRTSa+jOzQBHIX513EMu80TGnXtXQNG/1bTZ+TCwQucCEKjl+XKiCz2VDBwMMRUAERHQMdy/PLMjfdkzdZqXpTjHSM2KwbVORiVQ/EbIi0Upq4WjpRVAOdc/EeWU1yF7L2FZYPy/2fFHz80z46aJQBnVBeboj21pdbZCDUoykRHMwmJHTakBef54mYy84XRTL12szJQrSliL/PESTQ+4rKH8i3HohSlujE3YHu5eME5VC/8pq6h16mCiskK/5ZXDAkYH9mdP9C2jd2Q/GWDVmHc3iHMBjySC28QbE9ShM93UaRoTNQYYwN3eoI=";
+    </script>
+    
+        <script id="html_badge_script2" src="https://www.genspark.ai/html_badge.js"></script>
+
+        <script>
+            console.log("JS chargé !");
+        </script>
+        
