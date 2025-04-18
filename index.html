@@ -7,7 +7,7 @@
     <title>Organisation Familiale Personnalisée</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>...............................................
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
         
@@ -154,6 +154,11 @@
             }
         }
     </style>
+      <style>
+        .hidden {
+          display: none;
+        }
+      </style>
 </head>
 <noscript>
     <div class="bg-red-100 text-red-800 p-4 rounded mb-4">
@@ -172,7 +177,7 @@
     <div class="container mx-auto px-4 py-6 print-container">
         <!-- Navigation Tabs -->
         <div class="mb-8 no-print">
-            <div class="flex flex-wrap space-x-2 tabs">
+            <div class="flex space-x-2 mb-4">
                 <button type="button" class="tab-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded active" data-tab="planning">Plannings</button>
                 <button type="button" class="tab-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded" data-tab="tasks">Tâches Ménagères</button>
                 <button type="button" class="tab-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded" data-tab="prayer">Apprentissage Prière</button>
@@ -192,7 +197,7 @@
         </div>
         
         <!-- Planning Tab -->
-        <div id="planning" class="tab-content active">
+        <div id="planning" class="tab-content">
             <h2 class="text-2xl font-bold mb-6 text-gray-800">Plannings Familiaux</h2>
             
             <!-- Planning Type Selector -->
@@ -753,7 +758,7 @@
         </div>
         
         <!-- Tasks Tab -->
-        <div id="tasks" class="tab-content">
+        <div id="tasks" class="tab-content hidden">
             <h2 class="text-2xl font-bold mb-6 text-gray-800">Tâches Ménagères & Responsabilités</h2>
             
             <!-- Weekly Task Rotation -->
@@ -1075,7 +1080,7 @@
         </div>
         
         <!-- Prayer Learning Tab -->
-        <div id="prayer" class="tab-content">
+        <div id="prayer" class="tab-content hidden">
             <h2 class="text-2xl font-bold mb-6 text-gray-800">Apprentissage de la Prière</h2>
             
             <!-- Prayer Positions Guide -->
@@ -1377,7 +1382,7 @@
         </div>
         
         <!-- Invocations Tab -->
-        <div id="invocations" class="tab-content">
+        <div id="invocations" class="tab-content hidden">
             <h2 class="text-2xl font-bold mb-6 text-gray-800">Invocations du Matin et du Soir</h2>
             
             <!-- Printable Invocation Cards -->
@@ -1607,7 +1612,7 @@
         </div>
         
         <!-- Arabic Learning Tab -->
-        <div id="arabic" class="tab-content">
+        <div id="arabic" class="tab-content hidden">
             <h2 class="text-2xl font-bold mb-6 text-gray-800">Apprentissage de l'Arabe</h2>
             
             <!-- Arabic Alphabet -->
@@ -1702,4 +1707,26 @@
         <script>
             console.log("JS chargé !");
         </script>
+        <script>
+            const tabButtons = document.querySelectorAll(".tab-btn");
+            const tabContents = document.querySelectorAll(".tab-content");
+          
+            tabButtons.forEach(button => {
+              button.addEventListener("click", () => {
+                const tab = button.getAttribute("data-tab");
+          
+                // Enlève la classe "active" des boutons et cache les contenus
+                tabButtons.forEach(btn => btn.classList.remove("active"));
+                tabContents.forEach(content => content.classList.add("hidden"));
+          
+                // Active le bouton cliqué et affiche le contenu correspondant
+                button.classList.add("active");
+                const contentToShow = document.getElementById(tab);
+                if (contentToShow) {
+                  contentToShow.classList.remove("hidden");
+                }
+              });
+            });
+          </script>
+          
         
