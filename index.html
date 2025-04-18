@@ -1715,11 +1715,9 @@
               button.addEventListener("click", () => {
                 const tab = button.getAttribute("data-tab");
           
-                // Enlève la classe "active" des boutons et cache les contenus
                 tabButtons.forEach(btn => btn.classList.remove("active"));
                 tabContents.forEach(content => content.classList.add("hidden"));
           
-                // Active le bouton cliqué et affiche le contenu correspondant
                 button.classList.add("active");
                 const contentToShow = document.getElementById(tab);
                 if (contentToShow) {
@@ -1730,5 +1728,3 @@
           </script>
           </body>
           </html>
-          
-        
