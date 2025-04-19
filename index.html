@@ -159,6 +159,7 @@
           display: none;
         }
       </style>
+      <link rel="icon" href="data:,">
 </head>
 <noscript>
     <div class="bg-red-100 text-red-800 p-4 rounded mb-4">
@@ -1708,23 +1709,33 @@
             console.log("JS chargé !");
         </script>
         <script>
-            const tabButtons = document.querySelectorAll(".tab-btn");
-            const tabContents = document.querySelectorAll(".tab-content");
+            window.onload = function () {
+              console.log("JS chargé !");
+              const tabButtons = document.querySelectorAll(".tab-btn");
+              const tabContents = document.querySelectorAll(".tab-content");
           
-            tabButtons.forEach(button => {
-              button.addEventListener("click", () => {
-                const tab = button.getAttribute("data-tab");
+              tabButtons.forEach(button => {
+                button.addEventListener("click", () => {
+                  const tab = button.getAttribute("data-tab");
+                  console.log("onglet demandé :", tab);
           
-                tabButtons.forEach(btn => btn.classList.remove("active"));
-                tabContents.forEach(content => content.classList.add("hidden"));
+                  tabButtons.forEach(btn => btn.classList.remove("active"));
+                  tabContents.forEach(content => {
+                    content.classList.add("hidden");
+                  });
           
-                button.classList.add("active");
-                const contentToShow = document.getElementById(tab);
-                if (contentToShow) {
-                  contentToShow.classList.remove("hidden");
-                }
+                  button.classList.add("active");
+          
+                  const contentToShow = document.getElementById(tab);
+                  console.log("Contenu ciblé :", contentToShow);
+          
+                  if (contentToShow) {
+                    contentToShow.classList.remove("hidden");
+                  }
+                });
               });
-            });
+            };
           </script>
+          
           </body>
           </html>
