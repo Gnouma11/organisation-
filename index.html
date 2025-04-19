@@ -159,6 +159,16 @@
           display: none;
         }
       </style>
+      <style>
+  .tab-content {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative;
+    z-index: 1;
+    min-height: 200px;
+  }
+</style>
       <link rel="icon" href="data:,">
 </head>
 <noscript>
@@ -1719,20 +1729,29 @@
                   const tab = button.getAttribute("data-tab");
                   console.log("onglet demandé :", tab);
           
-                  tabButtons.forEach(btn => btn.classList.remove("active"));
+                  // Masquer tous les onglets
                   tabContents.forEach(content => {
-                    content.classList.add("hidden");
+                    content.style.display = "none";
                   });
           
+                  // Retirer la classe active de tous les boutons
+                  tabButtons.forEach(btn => btn.classList.remove("active"));
+          
+                  // Activer le bouton cliqué
                   button.classList.add("active");
           
+                  // Afficher le bon onglet
                   const contentToShow = document.getElementById(tab);
                   console.log("Contenu ciblé :", contentToShow);
-          
                   if (contentToShow) {
-                    contentToShow.classList.remove("hidden");
+                    contentToShow.style.display = "block";
                   }
                 });
+              });
+          
+              // Afficher uniquement le premier onglet au chargement
+              tabContents.forEach((content, index) => {
+                content.style.display = index === 0 ? "block" : "none";
               });
             };
           </script>
